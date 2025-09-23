@@ -1,60 +1,31 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="Générateur IA">
   <main class="container">
     <div class="generator-interface">
-
-      <script>
-        //@ts-nocheck
-
-        async function generateSVG(prompt) {
-          const res = await fetch('/api/generateSVG', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt }),
-          });
-          const data = await res.json();
-          return data.svg;
-        }
-
-        async function handleSubmit() {
-            
-          let prompt = "";
-          let svgCode = "";
-          const promptElement = document.getElementById("user-prompt");
-          prompt = promptElement ? promptElement.value : "";
-          const svgContainer = document.getElementById("svg-container");
-          let svgOutput = document.getElementById("svg-output");
-          svgCode = await generateSVG(prompt);
-          svgOutput.textContent = svgCode;
-          svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
-generateButton.disabled = true;
-          svgContainer.innerHTML = svgCode;
-          generateButton.disabled = false;
-        }
-
-        const generateButton = document.getElementById("generate-button");
-        if (generateButton) {
-          generateButton.addEventListener("click", handleSubmit);
-        }
-      </script>
-
       <div class="min-h-screen bg-base-100 text-base-content font-sans">
         <div class="container mx-auto p-5 max-w-6xl">
           <h1 class="text-center text-2xl font-bold mb-5">SVG Generator</h1>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 min-h-[300px]">
             <div class="bg-neutral text-neutral-content p-4">
-              <div id="svg-container" class="bg-base-100 h-full p-4 border border-base-300 flex items-center justify-center text-center">
+              <div
+                id="svg-container"
+                class="bg-base-100 h-full p-4 border border-base-300 flex items-center justify-center text-center"
+              >
                 <span class="placeholder opacity-70 italic">Preview</span>
               </div>
             </div>
 
             <div class="bg-neutral p-4 text-neutral-content">
-              <div class="bg-neutral text-neutral-content font-mono text-xs leading-snug overflow-auto p-3 h-full">
-                <code id="svg-output" class="block whitespace-pre">/* SVG Code */</code>
+              <div
+                class="bg-neutral text-neutral-content font-mono text-xs leading-snug overflow-auto p-3 h-full"
+              >
+                <code id="svg-output" class="block whitespace-pre"
+                  >/* SVG Code */</code
+                >
               </div>
             </div>
           </div>
@@ -64,14 +35,25 @@ generateButton.disabled = true;
               <label for="user-prompt" class="label">
                 <span class="label-text font-semibold">Prompt</span>
               </label>
-              <textarea id="user-prompt" class="textarea textarea-bordered w-full h-28 font-mono"></textarea>
+              <textarea
+                id="user-prompt"
+                class="textarea textarea-bordered w-full h-28 font-mono"
+              ></textarea>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-3 items-center bg-base-200 p-4 border border-base-300 mt-5">
-              <button id="generate-button" class="btn btn-neutral">Generate</button>
+            <div
+              class="flex flex-col md:flex-row gap-3 items-center bg-base-200 p-4 border border-base-300 mt-5"
+            >
+              <button id="generate-button" class="btn btn-neutral"
+                >Generate</button
+              >
+              <button class="btn btn-secondary m-2" id="edit-button">Edit</button>
+              <button id="save-button" class="btn btn-primary">Sauvegarder</button>
             </div>
 
-            <div class="result-box bg-base-200 p-3 border-l-4 border-neutral mt-4 text-sm">
+            <div
+              class="result-box bg-base-200 p-3 border-l-4 border-neutral mt-4 text-sm"
+            >
               Génère SVG...
             </div>
           </div>
@@ -80,3 +62,128 @@ generateButton.disabled = true;
     </div>
   </main>
 </Layout>
+
+<script>
+  //@ts-nocheck
+ const editButton = document.getElementById("edit-button");
+  async function generateSVG(prompt) {
+    const res = await fetch("/api/generateSVG", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(prompt),
+    });
+    const data = await res.json();
+    return data.svg;
+  }
+
+  let promptList = [];
+  
+
+  async function handleSubmit() {
+    let prompt = "";
+    let aiResponse = "";
+    const promptElement = document.getElementById("user-prompt");
+    prompt = promptElement ? promptElement.value : "";
+    console.log("submitted: ", prompt);
+    // Réinitialiser la liste des prompts
+    promptList.length = 0;
+    promptList.push({ role: "user", content: prompt });
+    const svgContainer = document.getElementById("svg-container");
+    // Afficher un spinner
+    svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
+    generateButton.disabled = true;
+    editButton.disabled = true;
+    let svgOutput = document.getElementById("svg-output");
+    // Appeler la fonction pour générer le SVG
+    aiResponse = await generateSVG(promptList);
+    // Extraire le SVG de la réponse
+    const svgMatch = aiResponse.content.match(/<svg[\s\S]*?<\/svg>/i);
+    aiResponse.content = svgMatch ? svgMatch[0] : "";
+    console.log("svgCode: ", aiResponse.content);
+    // Ajouter la réponse de l'IA à la liste des prompts
+    promptList.push(aiResponse);
+    // Afficher le SVG généré
+    svgOutput.textContent = aiResponse.content;
+    svgContainer.innerHTML = aiResponse.content;
+    // Réactiver les boutons
+    generateButton.disabled = false;
+    editButton.disabled = false;
+  }
+  const generateButton = document.getElementById("generate-button");
+  if (generateButton) {
+    generateButton.addEventListener("click", handleSubmit);
+  }
+
+
+async function handleEdit() {
+    let prompt = "";
+    let aiResponse = "";
+    const promptElement = document.getElementById("user-prompt");
+    prompt = promptElement ? promptElement.value : "";
+    console.log("Prompt soumis : ", prompt);
+    // Ajout du prompt de l'utilisateur à la liste
+    promptList.push({ role: "user", content: prompt });
+    const svgContainer = document.getElementById("svg-container");
+    // Afficher un spinner de chargement
+    svgContainer.innerHTML += `<span class="loading loading-ring loading-xl"></span>`;
+    generateButton.disabled = true;
+    editButton.disabled = true;
+    let svgOutput = document.getElementById("svg-output");
+    // Appeler la fonction pour générer le SVG
+    aiResponse = await generateSVG(promptList);
+    // Extraire le SVG de la réponse
+    const svgMatch = aiResponse.content.match(/<svg[\s\S]*?<\/svg>/i);
+    aiResponse.content = svgMatch ? svgMatch[0] : "";
+    console.log("Code SVG généré : ", aiResponse.content);
+    // Ajouter la réponse de l'IA à la liste des prompts
+    promptList.push(aiResponse);
+    // Afficher le SVG généré
+    svgOutput.textContent = aiResponse.content;
+    svgContainer.innerHTML = aiResponse.content;
+    // Réactiver les boutons
+    generateButton.disabled = false;
+    editButton.disabled = false;
+    console.log("Historique des prompts : ", promptList);
+}
+
+if (editButton) {
+    editButton.addEventListener("click", handleEdit);
+}
+
+
+function sauvegarderSVG() {
+  const svgContainer = document.getElementById("svg-container");
+  const svgElement = svgContainer ? svgContainer.querySelector('svg') : null;
+  
+  if (!svgElement) {
+    alert('Aucun SVG trouvé à sauvegarder. Générez d\'abord un SVG.');
+    return;
+  }
+  
+  const svgClone = svgElement.cloneNode(true);
+  if (!svgClone.getAttribute('xmlns')) {
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  }
+  
+  const svgString = new XMLSerializer().serializeToString(svgClone);
+  const blob = new Blob([svgString], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+  downloadLink.download = `svg-generé-${timestamp}.svg`;
+  
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  URL.revokeObjectURL(url);
+}
+
+// Ajouter l'event listener pour le bouton (après votre code existant)
+const saveButton = document.getElementById("save-button");
+if (saveButton) {
+  saveButton.addEventListener("click", sauvegarderSVG);
+}
+
+</script>
