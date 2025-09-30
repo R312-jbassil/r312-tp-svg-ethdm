@@ -16,7 +16,7 @@ export const POST = async ({ request }) => {
     // Initialisation du client OpenAI avec l'URL de base et le token d'API
     const client = new OpenAI({
         baseURL: "https://openrouter.ai/api/v1",
-        apiKey: "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", // Token d'accès pour l'API
+        apiKey: "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", // Token d'accès pour l'API
     });
     
     // Création du message système pour guider le modèle

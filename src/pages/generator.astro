@@ -150,40 +150,58 @@ if (editButton) {
     editButton.addEventListener("click", handleEdit);
 }
 
-
-function sauvegarderSVG() {
-  const svgContainer = document.getElementById("svg-container");
-  const svgElement = svgContainer ? svgContainer.querySelector('svg') : null;
-  
-  if (!svgElement) {
-    alert('Aucun SVG trouvé à sauvegarder. Générez d\'abord un SVG.');
-    return;
-  }
-  
-  const svgClone = svgElement.cloneNode(true);
-  if (!svgClone.getAttribute('xmlns')) {
-    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  }
-  
-  const svgString = new XMLSerializer().serializeToString(svgClone);
-  const blob = new Blob([svgString], { type: 'image/svg+xml' });
-  const url = URL.createObjectURL(blob);
-  
-  const downloadLink = document.createElement('a');
-  downloadLink.href = url;
-  const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-  downloadLink.download = `svg-generé-${timestamp}.svg`;
-  
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-  URL.revokeObjectURL(url);
-}
-
-// Ajouter l'event listener pour le bouton (après votre code existant)
 const saveButton = document.getElementById("save-button");
-if (saveButton) {
-  saveButton.addEventListener("click", sauvegarderSVG);
+async function saveSVG(params) {
+    // Ajoutez ici le token si nécessaire, par exemple depuis localStorage ou un cookie
+    const token = localStorage.getItem("authToken"); // ou autre méthode pour récupérer le token
+    const headers = { "Content-Type": "application/json" };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch("/api/saveSVG", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(params),
+        credentials: "include", // inclut les cookies si besoin
+    });
+    if (res.status === 401) {
+        alert("Vous devez être connecté pour sauvegarder le SVG.");
+        throw new Error("Unauthorized");
+    }
+    const data = await res.json();
+    return data;
 }
+
+if (saveButton) {
+    saveButton.addEventListener("click", async () => {
+        // Vérifier qu'un SVG existe
+        const svgOutput = document.getElementById("svg-output")?.textContent;
+        if (!svgOutput || svgOutput.trim() === "") {
+            alert('Aucun SVG trouvé à sauvegarder. Générez d\'abord un SVG.');
+            return;
+        }
+        
+        const name = prompt("Entrez un nom pour le SVG :");
+        if (!name) return; // L'utilisateur a annulé
+        
+        console.log("Sauvegarde du SVG : ", JSON.stringify(svgOutput));
+        
+        const params = {
+            nom: name,
+            code_svg: svgOutput,
+            chat_history: JSON.stringify(promptList),
+        };
+        
+        try {
+            await saveSVG(params);
+            alert('SVG sauvegardé avec succès !');
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde:', error);
+            alert('Erreur lors de la sauvegarde du SVG.');
+        }
+    });
+}
+
+
 
 </script>
