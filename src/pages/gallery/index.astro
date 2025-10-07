@@ -14,6 +14,20 @@ try {
 } catch (error) {
     console.error("Erreur lors de la récupération des SVGs :", error);
 }
+
+const user = await pb.authStore.model;
+let svglist = [];
+
+if (user) {
+    svgs = await pb.collection(Collections.Svg).getFullList({
+        sort: "-created",
+        filter: `user = "${user.id}"`,
+    });
+} else {
+    svgs = await pb.collection(Collections.Svg).getFullList({
+        sort: "-created",
+    });
+}
 ---
 
 <Layout>

@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+const user = Astro.locals.user;
 ---
 
 <Layout title="Générateur IA">
@@ -51,8 +52,8 @@ import Layout from "../layouts/Layout.astro";
               <button id="save-button" class="btn btn-primary"
               >Sauvegarder</button
               >
-              <a href="/gallery/" class="btn btn-gallery"
-              > Aller à la galerie </a>
+                <a href="/gallery/" class="btn btn-gallery" style="background-color: #FFD700;"
+                > Aller à la galerie </a>
             </div>
 
             <div

@@ -1,24 +1,44 @@
 ---
 import "../styles/global.css";
+import pb from "../utils/pb";
+
+const user = pb.authStore.model;
+
+let avatarUrl = null;
+if (user && user.avatar) {
+    avatarUrl = pb.files.getUrl(user, user.avatar);
+}
 ---
 
 <!doctype html>
 <html lang="en" data-theme="light" class="h-full">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head><form method="POST" action="/api/logout" class="m-0 p-0 ml-4">
-		<button type="submit" class="btn btn-primary">Logout</button>
-	</form>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Astro Basics</title>
+    </head>
 
-	<body class="h-full">
-		<div class="h-full flex flex-col min-h-0">
-			<div class="flex-1 min-h-0">
-				<slot />
+    <body class="h-full">
+		<div class="flex items-center gap-4 absolute top-4 right-4">
+			<form method="POST" action="/api/logout" class="m-0 p-0">
+			<button type="submit" class="btn btn-primary">Logout</button>
+			</form>
+			
+			{avatarUrl && (
+			<div class="avatar">
+				<div class="w-12 rounded">
+				<img src={avatarUrl} alt="Avatar" />
+				</div>
 			</div>
+			)}
 		</div>
-	</body>
+        
+        <div class="h-full flex flex-col min-h-0">
+            <div class="flex-1 min-h-0">
+                <slot />
+            </div>
+        </div>
+    </body>
 </html>
