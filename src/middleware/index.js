@@ -1,7 +1,5 @@
 import pb from "../utils/pb.js";
 
-// Vérifie la présence du cookie d'authentification
-
 export const onRequest = async (context, next) => {
     const cookie = context.cookies.get("pb_auth")?.value;
     if (cookie) {
@@ -14,7 +12,7 @@ export const onRequest = async (context, next) => {
 
     // Pour les routes API, on exige l'authentification sauf pour /api/login
     if (context.url.pathname.startsWith('/api/')) {
-        if (!context.locals.user && context.url.pathname !== '/api/login') {
+        if (!context.locals.user && context.url.pathname !== '/api/login' && context.url.pathname !== '/api/signup') {
             // Si l'utilisateur n'est pas connecté, on retourne une erreur 401 (non autorisé)
             return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
         }
@@ -23,11 +21,9 @@ export const onRequest = async (context, next) => {
 
     // Pour les autres pages, si l'utilisateur n'est pas connecté, on le redirige vers /login
     if (!context.locals.user) {
-        if (context.url.pathname !== '/login' && context.url.pathname !== '/')
+        if (context.url.pathname !== '/login' && context.url.pathname !== '/' && context.url.pathname !== '/signup')
             return Response.redirect(new URL('/login', context.url), 303);
     }
-    // ... middleware pour l'i18n
-
     // Si la requête est un POST (soumission du formulaire de langue) :
     if (context.request.method === 'POST') {
         // Lire les données du formulaire
@@ -60,4 +56,4 @@ export const onRequest = async (context, next) => {
 
     // Continuer le traitement normal (afficher la page demandée)
     return next();
-}
+};
