@@ -6,7 +6,7 @@ export async function POST({ request }) {
   console.log("Received data to save:", data);
   try {
     const record = await pb
-      .collection(Collections.svg)
+      .collection(Collections.Svg)
       .create(data);
     console.log("SVG saved with ID:", record.id);
 
