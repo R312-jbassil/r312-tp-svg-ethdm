@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 ---
+
 <!doctype html>
 <html lang="en" data-theme="light" class="h-full">
 	<head>
@@ -9,7 +10,10 @@ import "../styles/global.css";
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro Basics</title>
-	</head>
+	</head><form method="POST" action="/api/logout" class="m-0 p-0 ml-4">
+		<button type="submit" class="btn btn-primary">Logout</button>
+	</form>
+
 	<body class="h-full">
 		<div class="h-full flex flex-col min-h-0">
 			<div class="flex-1 min-h-0">
