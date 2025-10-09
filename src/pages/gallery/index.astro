@@ -2,6 +2,10 @@
 import PocketBase from "../../utils/pb";
 import { Collections } from "../../utils/pocketbase-types";
 import Layout from "../../layouts/Layout.astro";
+import { ui } from "../../i18n/ui.js";
+
+const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
+console.log('Locale in index:', locale);
 
 const pb = PocketBase;
 
@@ -32,7 +36,7 @@ if (user) {
 
 <Layout>
     <a class="btn btn-primary mb-4" href="/generator">← Retour au générateur</a>
-    <h1 class="text-3xl font-bold text-center mb-8">Galerie des SVG</h1>
+    <h1 class="text-3xl font-bold text-center mb-8">{ui[locale].gallery.title}</h1>
 
     {
         svgs.length > 0 ? (

@@ -2,6 +2,10 @@
 import Layout from "../layouts/Layout.astro";
 import pb from "../utils/pb";
 import { user } from "../utils/pocketbase-types";
+import { ui } from "../i18n/ui.js";
+
+const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
+console.log('Locale in index:', locale);
 
 if (Astro.locals.user) {
     return Astro.redirect("/");

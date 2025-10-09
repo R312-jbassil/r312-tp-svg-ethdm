@@ -2,6 +2,10 @@
 import Layout from "../../layouts/Layout.astro";
 import pb from "../../utils/pb";
 import { Collections, type SvgRecord } from "../../utils/pocketbase-types";
+import { ui } from "../../i18n/ui.js";
+
+const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
+console.log('Locale in index:', locale);
 const user = Astro.locals.user;
 
 const id = Astro.params.id;
@@ -97,7 +101,7 @@ const errorParam = urlParams.get("error");
         }
 
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Galerie SVG</h1>
+            <h1 class="text-3xl font-bold">{ui[locale].gallery.title}/h1>
             <a href="/gallery" class="btn btn-ghost">← Retour à la galerie</a>
         </div>
 

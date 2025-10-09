@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
 import pb from "../utils/pb";
+import { ui } from "../i18n/ui.js";
+const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
 
 const user = pb.authStore.model;
 
@@ -25,18 +27,32 @@ if (user && user.avatar) {
             <form method="POST" action="/api/logout" class="m-0 p-0 ml-4">
                 <button type="submit" class="btn btn-primary">Logout</button>
             </form>
-            
+
             <a href="/signup" class="btn btn-secondary">S'inscrire</a>
-            
-            {avatarUrl && (
-                <div class="avatar">
-                    <div class="w-24 rounded">
-                        <img src={avatarUrl} alt="Avatar" />
+
+            <form method="POST" action={Astro.url.pathname}>
+                <select
+                    name="language"
+                    class="select"
+                    onchange="this.form.submit()">
+
+                    <option disabled selected="true">{ui[locale].nav.language}</option>
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                </select>
+            </form>
+
+            {
+                avatarUrl && (
+                    <div class="avatar">
+                        <div class="w-24 rounded">
+                            <img src={avatarUrl} alt="Avatar" />
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div>
-        
+
         <div class="h-full flex flex-col min-h-0">
             <div class="flex-1 min-h-0">
                 <slot />

@@ -1,14 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { ui } from "../i18n/ui.js";
+
+const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
+console.log('Locale in index:', locale);
 const user = Astro.locals.user;
 ---
-
-<Layout title="Générateur IA">
+<Layout title="{ui[locale].index.title}">
+  
   <main class="container">
     <div class="generator-interface">
       <div class="min-h-screen bg-base-100 text-base-content font-sans">
         <div class="container mx-auto p-5 max-w-6xl">
-          <h1 class="text-center text-2xl font-bold mb-5">SVG Generator</h1>
+          <h1 class="text-center text-2xl font-bold mb-5">{ui[locale].generator.title}</h1>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 min-h-[300px]">
             <div class="bg-neutral text-neutral-content p-4">
@@ -32,7 +36,7 @@ const user = Astro.locals.user;
           <div class="space-y-4">
             <div class="form-control">
               <label for="user-prompt" class="label">
-                <span class="label-text font-semibold">Prompt</span>
+                <span class="label-text font-semibold">{ui[locale].generator.promptLabel}</span>
               </label>
               <textarea
                 id="user-prompt"
@@ -44,16 +48,16 @@ const user = Astro.locals.user;
               class="flex flex-col md:flex-row gap-3 items-center bg-base-200 p-4 border border-base-300 mt-5"
             >
               <button id="generate-button" class="btn btn-neutral"
-              >Generate</button
+              >{ui[locale].generator.generateButton}</button
               >
               <button class="btn btn-secondary m-2" id="edit-button"
-              >Edit</button
+              >{ui[locale].generator.editButton}</button
               >
               <button id="save-button" class="btn btn-primary"
-              >Sauvegarder</button
+              >{ui[locale].generator.saveLabel}</button
               >
                 <a href="/gallery/" class="btn btn-gallery" style="background-color: #FFD700;"
-                > Aller à la galerie </a>
+                >{ui[locale].gallery.title}</a>
             </div>
 
             <div
