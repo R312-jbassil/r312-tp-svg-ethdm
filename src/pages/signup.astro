@@ -2,162 +2,206 @@
 import pb from "../utils/pb.js";
 import { ui } from "../i18n/ui.js";
 import Layout from "../layouts/Layout.astro";
-const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
-console.log('Locale in index:', locale);
-const lang = Astro.locals.lang || 'fr';
+const locale = (Astro.locals.lang as "en" | "fr") ?? "en";
+console.log("Locale in index:", locale);
+const lang = Astro.locals.lang || "fr";
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang={lang}>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription</title>
-    <style>
-        .error { color: red; margin-top: 0.5rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
-        .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
-        .avatar-preview { margin-top: 0.5rem; max-width: 150px; max-height: 150px; border-radius: 8px; display: none; }
-        button { padding: 0.75rem 1.5rem; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
-        button:disabled { opacity: 0.6; cursor: not-allowed; }
-        .container { max-width: 500px; margin: 2rem auto; padding: 2rem; }
-    </style>
-</head>
-<Layout title="{ui[locale].index.title}">
-  <body>
-    <div class="container">
-        <h1>Créer un compte</h1>
-        
-        <form id="signupForm" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="name">Nom complet *</label>
-                <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    required
-                    autocomplete="name"
-                />
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email *</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    required 
-                    autocomplete="email"
-                />
-            </div>
-
-            <div class="form-group">
-                <label for="username">Nom d'utilisateur</label>
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    autocomplete="username"
-                />
-            </div>
-
-            <div class="form-group">
-                <label for="avatar">Photo de profil</label>
-                <input 
-                    type="file" 
-                    id="avatar" 
-                    name="avatar" 
-                    accept="image/*"
-                />
-                <img id="avatarPreview" class="avatar-preview" alt="Aperçu de l'avatar" />
-            </div>
-
-            <div class="form-group">
-                <label for="password">Mot de passe *</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    required 
-                    minlength="8"
-                    autocomplete="new-password"
-                />
-            </div>
-
-            <div class="form-group">
-                <label for="passwordConfirm">Confirmer le mot de passe *</label>
-                <input 
-                    type="password" 
-                    id="passwordConfirm" 
-                    name="passwordConfirm" 
-                    required 
-                    minlength="8"
-                    autocomplete="new-password"
-                />
-            </div>
-
-            <div id="errorMessage" class="error"></div>
-
-            <button type="submit" id="submitBtn">S'inscrire</button>
-        </form>
-
-        <p>Déjà un compte ? <a href="/login">Se connecter</a></p>
-    </div>
-
-    <script>
-        const form = document.getElementById('signupForm');
-        const errorDiv = document.getElementById('errorMessage');
-        const submitBtn = document.getElementById('submitBtn');
-        const avatarInput = document.getElementById('avatar');
-        const avatarPreview = document.getElementById('avatarPreview');
-
-        // Prévisualisation de l'avatar
-        avatarInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    avatarPreview.src = event.target.result;
-                    avatarPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                avatarPreview.style.display = 'none';
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Inscription</title>
+        <style>
+            .error {
+                color: red;
+                margin-top: 0.5rem;
             }
-        });
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 0.25rem;
+                font-weight: 500;
+            }
+            .form-group input {
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            .avatar-preview {
+                margin-top: 0.5rem;
+                max-width: 150px;
+                max-height: 150px;
+                border-radius: 8px;
+                display: none;
+            }
+            button {
+                padding: 0.75rem 1.5rem;
+                background: #007bff;
+                color: white;
+                border: none;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            .container {
+                max-width: 500px;
+                margin: 2rem auto;
+                padding: 2rem;
+            }
+        </style>
+    </head>
+    <Layout title="{ui[locale].index.title}">
+        <body>
+            <div class="container">
+                <h1>Créer un compte</h1>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorDiv.textContent = '';
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Inscription en cours...';
+                <form
+                    id="signupForm"
+                    method="POST"
+                    enctype="multipart/form-data"
+                >
+                    <div class="form-group">
+                        <label for="name">Nom complet *</label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            required
+                            autocomplete="name"
+                        />
+                    </div>
 
-            const formData = new FormData(form);
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            autocomplete="email"
+                        />
+                    </div>
 
-            try {
-                const response = await fetch('/api/signup', {
-                    method: 'POST',
-                    body: formData // FormData gère automatiquement multipart/form-data
+                    <div class="form-group">
+                        <label for="username">Nom d'utilisateur</label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            autocomplete="username"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="avatar">Photo de profil</label>
+                        <input
+                            type="file"
+                            id="avatar"
+                            name="avatar"
+                            accept="image/*"
+                        />
+                        <img
+                            id="avatarPreview"
+                            class="avatar-preview"
+                            alt="Aperçu de l'avatar"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Mot de passe *</label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            required
+                            minlength="8"
+                            autocomplete="new-password"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passwordConfirm"
+                            >Confirmer le mot de passe *</label
+                        >
+                        <input
+                            type="password"
+                            id="passwordConfirm"
+                            name="passwordConfirm"
+                            required
+                            minlength="8"
+                            autocomplete="new-password"
+                        />
+                    </div>
+
+                    <div id="errorMessage" class="error"></div>
+
+                    <button type="submit" id="submitBtn">S'inscrire</button>
+                </form>
+
+                <p>Déjà un compte ? <a href="/login">Se connecter</a></p>
+            </div>
+
+            <script>
+                const form = document.getElementById("signupForm");
+                const errorDiv = document.getElementById("errorMessage");
+                const submitBtn = document.getElementById("submitBtn");
+                const avatarInput = document.getElementById("avatar");
+                const avatarPreview = document.getElementById("avatarPreview");
+
+                // Prévisualisation de l'avatar
+                avatarInput.addEventListener("change", function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            avatarPreview.src = event.target.result;
+                            avatarPreview.style.display = "block";
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        avatarPreview.style.display = "none";
+                    }
                 });
 
-                const data = await response.json();
+                form.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    errorDiv.textContent = "";
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = "Inscription en cours...";
 
-                if (response.ok) {
-                    window.location.href = '/generator';
-                } else {
-                    errorDiv.textContent = data.error || 'Erreur lors de l\'inscription';
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'S\'inscrire';
-                }
-            } catch (error) {
-                errorDiv.textContent = 'Erreur de connexion au serveur';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'S\'inscrire';
-            }
-        });
-    </script>
-</Layout>
+                    const formData = new FormData(form);
 
-</body>
+                    try {
+                        const response = await fetch("/api/signup", {
+                            method: "POST",
+                            body: formData, // FormData gère automatiquement multipart/form-data
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            window.location.href = "/generator";
+                        } else {
+                            errorDiv.textContent =
+                                data.error || "Erreur lors de l'inscription";
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = "S'inscrire";
+                        }
+                    } catch (error) {
+                        errorDiv.textContent = "Erreur de connexion au serveur";
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "S'inscrire";
+                    }
+                });
+            </script>
+        </body>
+    </Layout>
 </html>
