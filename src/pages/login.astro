@@ -58,10 +58,10 @@ const user = Astro.locals.user;
         if (res.ok) {
             const resData = await res.json();
             localStorage.setItem("user", JSON.stringify(resData.user));
-            status.textContent = "✅ Connexion réussie !";
+            status.textContent = "Connexion réussie !";
             window.location.href = "/";
         } else {
-            status.textContent = "❌ Email ou mot de passe invalide";
+            status.textContent = " Email ou mot de passe invalide";
         }
     });
 </script>

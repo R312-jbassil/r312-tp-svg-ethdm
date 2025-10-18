@@ -9,75 +9,37 @@ const lang = Astro.locals.lang || "fr";
 
 <!doctype html>
 <html lang={lang}>
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Inscription</title>
-        <style>
-            .error {
-                color: red;
-                margin-top: 0.5rem;
-            }
-            .form-group {
-                margin-bottom: 1rem;
-            }
-            .form-group label {
-                display: block;
-                margin-bottom: 0.25rem;
-                font-weight: 500;
-            }
-            .form-group input {
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-            }
-            .avatar-preview {
-                margin-top: 0.5rem;
-                max-width: 150px;
-                max-height: 150px;
-                border-radius: 8px;
-                display: none;
-            }
-            button {
-                padding: 0.75rem 1.5rem;
-                background: #007bff;
-                color: white;
-                border: none;
-                cursor: pointer;
-                border-radius: 4px;
-            }
-            button:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-            .container {
-                max-width: 500px;
-                margin: 2rem auto;
-                padding: 2rem;
-            }
-        </style>
-    </head>
-    <Layout title="{ui[locale].index.title}">
-        <body>
-            <div class="container">
-                <h1>Créer un compte</h1>
-
-                <form
-                    id="signupForm"
-                    method="POST"
-                    enctype="multipart/form-data"
-                >
-                    <div class="form-group">
-                        <label for="name">Nom complet *</label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            required
-                            autocomplete="name"
-                        />
-                    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription</title>
+    <style>
+        .error { color: red; margin-top: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+        .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .avatar-preview { margin-top: 0.5rem; max-width: 150px; max-height: 150px; border-radius: 8px; display: none; }
+        button { padding: 0.75rem 1.5rem; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .container { max-width: 500px; margin: 2rem auto; padding: 2rem; }
+    </style>
+</head>
+<Layout title="{ui[locale].index.title}">
+  <body>
+    <div class="container">
+        <h1>Créer un compte</h1>
+        
+        <form id="signupForm" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Nom complet *</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    required
+                    autocomplete="name"
+                />
+            </div>
 
                     <div class="form-group">
                         <label for="email">Email *</label>
@@ -187,21 +149,21 @@ const lang = Astro.locals.lang || "fr";
 
                         const data = await response.json();
 
-                        if (response.ok) {
-                            window.location.href = "/generator";
-                        } else {
-                            errorDiv.textContent =
-                                data.error || "Erreur lors de l'inscription";
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = "S'inscrire";
-                        }
-                    } catch (error) {
-                        errorDiv.textContent = "Erreur de connexion au serveur";
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = "S'inscrire";
-                    }
-                });
-            </script>
-        </body>
-    </Layout>
+                if (response.ok) {
+                    window.location.href = '/generator';
+                } else {
+                    errorDiv.textContent = data.error || 'Erreur lors de l\'inscription';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'S\'inscrire';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Erreur de connexion au serveur';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'S\'inscrire';
+            }
+        });
+    </script>
+</Layout>
+
+</body>
 </html>
