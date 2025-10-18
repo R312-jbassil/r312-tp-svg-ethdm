@@ -25,13 +25,7 @@ const lang = Astro.locals.lang || 'fr';
     </style>
 </head>
 <Layout title="{ui[locale].index.title}">
-  <div class="flex flex-col h-full items-center justify-center glass bg-primary">
-    <h1 class="text-4xl font-bold mb-4 text-primary-content">{ui[locale].index.title}</h1>
-    <p class="mb-6 text-lg text-primary-content">{ui[locale].index.description}</p>
-    <a href="generator" class="btn btn-secondary">{ui[locale].index.button}</a>
-  </div>
-</Layout>
-<body>
+  <body>
     <div class="container">
         <h1>Créer un compte</h1>
         
@@ -163,5 +157,7 @@ const lang = Astro.locals.lang || 'fr';
             }
         });
     </script>
+</Layout>
+
 </body>
 </html>

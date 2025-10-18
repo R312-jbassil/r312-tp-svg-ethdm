@@ -2,11 +2,8 @@
 import Layout from "../../layouts/Layout.astro";
 import pb from "../../utils/pb";
 import { Collections, type SvgRecord } from "../../utils/pocketbase-types";
-import { ui } from "../../i18n/ui.js";
 
-const locale = Astro.locals.lang as 'en' | 'fr' ?? 'en';
-console.log('Locale in index:', locale);
-const user = Astro.locals.user;
+export const prerender = false;
 
 const id = Astro.params.id;
 
@@ -26,19 +23,25 @@ if (Astro.request.method === "POST") {
             },
         ];
 
-        const generateResponse = await fetch(
-            new URL("/api/generateSVG", Astro.url),
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(messages),
+        const response = await fetch(new URL("/api/generateSVG", Astro.url), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
             },
-        );
+            body: JSON.stringify(messages),
+        });
 
-        const generateData = await generateResponse.json();
-        const newSvgCode = generateData.svg.content;
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data || !data.svg || !data.svg.content) {
+            throw new Error("Invalid response from generateSVG API");
+        }
+
+        const newSvgCode = data.svg.content;
 
         const updatedHistory = [
             ...history,
@@ -46,33 +49,14 @@ if (Astro.request.method === "POST") {
             { role: "assistant", content: newSvgCode },
         ];
 
-        const updateResponse = await fetch(
-            new URL("/api/updateSVG", Astro.url),
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    id: formData.get("id"),
-                    code_svg: newSvgCode,
-                    chat_history: updatedHistory,
-                }),
-            },
-        );
+        await pb.collection(Collections.Svg).update(id, {
+            code_svg: newSvgCode,
+            chat_history: updatedHistory,
+        });
 
-        const updateData = await updateResponse.json();
-
-        if (updateData.success) {
-            console.log("SVG mis à jour avec succès:", updateData.id);
-            return Astro.redirect(`/gallery/${id}`);
-        } else {
-            console.error("Échec de la mise à jour du SVG:", updateData.error);
-            return Astro.redirect(`/gallery/${id}?error=update_failed`);
-        }
+        return Astro.redirect(`/gallery/${id}`);
     } catch (error) {
         console.error("Erreur lors de la soumission:", error);
-        return Astro.redirect(`/gallery/${id}?error=server_error`);
     }
 }
 
@@ -81,27 +65,12 @@ const svg: SvgRecord = await pb.collection(Collections.Svg).getOne(id, {
 });
 
 const messages = svg.expand?.chat_history || [];
-
-const urlParams = new URL(Astro.request.url).searchParams;
-const errorParam = urlParams.get("error");
 ---
 
 <Layout title={`SVG - ${svg.name || id}`}>
     <main class="container mx-auto p-8">
-        {
-            errorParam && (
-                <div class="alert alert-error mb-4">
-                    <span>
-                        {errorParam === "update_failed"
-                            ? "Échec de la mise à jour du SVG. Veuillez réessayer."
-                            : "Une erreur serveur s'est produite."}
-                    </span>
-                </div>
-            )
-        }
-
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">{ui[locale].gallery.title}/h1>
+            <h1 class="text-3xl font-bold">Galerie SVG</h1>
             <a href="/gallery" class="btn btn-ghost">← Retour à la galerie</a>
         </div>
 
@@ -114,39 +83,7 @@ const errorParam = urlParams.get("error");
                         id="svg-container"
                         set:html={svg.code_svg}
                     />
-                    <div
-                        id="chat-history"
-                        class="flex flex-col gap-4 w-full mb-20 overflow-y-auto flex-grow"
-                    >
-                        {
-                            Array.isArray(svg?.chat_history) &&
-                            svg.chat_history.length > 0 ? (
-                                svg.chat_history.map(
-                                    (msg: {
-                                        role: string;
-                                        content: string;
-                                    }) => (
-                                        <div
-                                            class={`chat ${msg.role === "user" ? "chat-start" : "chat-end"}`}
-                                        >
-                                            <div
-                                                class={`chat-bubble ${msg.role === "user" ? "bg-primary text-primary-content" : "bg-secondary text-secondary-content"}`}
-                                            >
-                                                <pre>{msg.content}</pre>
-                                            </div>
-                                            <div class="chat-footer opacity-60 text-xs mt-1">
-                                                {msg.role}
-                                            </div>
-                                        </div>
-                                    ),
-                                )
-                            ) : (
-                                <span class="text-error">
-                                    Aucun historique de chat.
-                                </span>
-                            )
-                        }
-                    </div>
+
                     <div class="card bg-base-100 p-4 mt-4">
                         <p><strong>ID:</strong> {svg.id}</p>
                         {
@@ -176,7 +113,7 @@ const errorParam = urlParams.get("error");
 
             <section class="card bg-base-200 flex flex-col h-[600px]">
                 <div class="card-body flex flex-col h-full p-0">
-                    <h2 class="card-title p-4 pb-0">Chat d'édition</h2>
+                    <h2 class="card-title p-4 pb-0">Chat d'édition (Rafraichir la page pour obtenir le code svg)</h2>
 
                     <div
                         id="chat-history"
@@ -196,17 +133,9 @@ const errorParam = urlParams.get("error");
                                             <div
                                                 class={`chat-bubble ${msg.role === "user" ? "bg-primary text-primary-content" : "bg-secondary text-secondary-content"}`}
                                             >
-                                                {msg.role === "assistant" &&
-                                                msg.content.includes("<svg") ? (
-                                                    <div
-                                                        class="bg-white rounded p-2 max-w-[200px] max-h-[200px] flex items-center justify-center"
-                                                        set:html={msg.content}
-                                                    />
-                                                ) : (
-                                                    <pre class="whitespace-pre-wrap text-sm">
-                                                        {msg.content}
-                                                    </pre>
-                                                )}
+                                                <pre class="whitespace-pre-wrap text-sm">
+                                                    {msg.content}
+                                                </pre>
                                             </div>
                                             <div class="chat-footer opacity-60 text-xs mt-1">
                                                 {msg.role}
@@ -227,38 +156,195 @@ const errorParam = urlParams.get("error");
                     <div class="border-t border-base-300 p-4">
                         <form
                             id="input-prompt-form"
-                            class="flex gap-2"
+                            class="flex flex-col gap-2 w-full"
                             method="POST"
                             autocomplete="off"
                         >
                             <input
                                 type="hidden"
                                 name="history"
-                                value={JSON.stringify(svg?.chat_history)}
+                                id="history-input"
+                                value={JSON.stringify(svg?.chat_history || [])}
                             />
                             <input type="hidden" name="id" value={svg?.id} />
-                            <input
-                                id="prompt-input"
-                                name="editPrompt"
-                                type="text"
-                                class="input input-bordered flex-1"
-                                placeholder="Décrivez vos modifications..."
-                                required
-                            />
-                            <button class="btn btn-primary" type="submit">
-                                Envoyer
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <input
+                                    id="prompt-input"
+                                    name="editPrompt"
+                                    type="text"
+                                    class="input flex-grow"
+                                    placeholder="Enter a prompt to edit the SVG..."
+                                    required
+                                />
+                                <button class="btn btn-primary" type="submit" id="submit-btn"
+                                    >Edit</button
+                                >
+                            </div>
                         </form>
                     </div>
                 </div>
             </section>
         </div>
     </main>
-
-    <script define:vars={{ svgId: svg.id, svgContent: svg.code_svg }}>
-        const chatHistory = document.getElementById("chat-history");
-        if (chatHistory) {
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-    </script>
 </Layout>
+
+<script>
+    //@ts-nocheck
+    const form = document.getElementById('input-prompt-form');
+    const svgPreview = document.getElementById('svg-container');
+    const chatHistory = document.getElementById('chat-history');
+    const submitBtn = document.getElementById('submit-btn');
+
+    async function generateSVG(messages) {
+        const response = await fetch('/api/generateSVG', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(messages)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data || !data.svg || !data.svg.content) {
+            throw new Error('Invalid API response');
+        }
+        
+        return data.svg.content;
+    }
+
+    async function updateSVG(updatedData) {
+        const response = await fetch('/api/updateSVG', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("SVG updated successfully in database");
+        } else {
+            throw new Error(data.error || "Failed to update SVG");
+        }
+
+        return data;
+    }
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const promptValue = formData.get('editPrompt');
+        
+        if (!promptValue || promptValue.trim() === '') {
+            return;
+        }
+
+        console.log(JSON.stringify(Object.fromEntries(formData)));
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+
+        let prompt = {
+            role: 'user',
+            content: promptValue
+        };
+
+        let history = JSON.parse(formData.get('history') || '[]');
+        
+        const currentSvg = svgPreview.innerHTML.trim();
+
+        document.getElementById('prompt-input').value = '';
+        
+        chatHistory.innerHTML += `<div class="chat chat-start">
+            <div class="chat-bubble bg-primary text-primary-content">
+                <pre class="whitespace-pre-wrap text-sm">${prompt.content}</pre>
+            </div>
+            <div class="chat-footer opacity-60 text-xs mt-1">user</div>
+        </div>`;
+        
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        try {
+            const messages = [
+                ...history,
+                {
+                    role: 'user',
+                    content: `SVG actuel:\n${currentSvg}\n\nModification demandée: ${prompt.content}`
+                }
+            ];
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-indicator';
+            loadingDiv.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
+            svgPreview.appendChild(loadingDiv);
+
+            let aiResponse = await generateSVG(messages);
+            
+            if (!aiResponse) {
+                throw new Error('Empty response from API');
+            }
+
+            const svgMatch = aiResponse.match(/<svg[\s\S]*?<\/svg>/i);
+            const svgCode = svgMatch ? svgMatch[0] : aiResponse;
+
+            console.log("svgCode: ", svgCode);
+            
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+
+            svgPreview.innerHTML = svgCode;
+
+            history.push(prompt);
+            history.push({ role: 'assistant', content: svgCode });
+
+            chatHistory.innerHTML += `<div class="chat chat-end">
+                <div class="chat-bubble bg-secondary text-secondary-content">
+                    <pre class="whitespace-pre-wrap text-sm">SVG modifié avec succès</pre>
+                </div>
+                <div class="chat-footer opacity-60 text-xs mt-1">assistant</div>
+            </div>`;
+
+            document.getElementById('history-input').value = JSON.stringify(history);
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            await updateSVG({
+                id: formData.get('id'),
+                code_svg: svgCode,
+                chat_history: history
+            });
+
+            console.log("✅ Données mises à jour avec succès dans PocketBase");
+
+        } catch (error) {
+            console.error('Erreur:', error);
+            
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+            
+            chatHistory.innerHTML += `<div class="chat chat-end">
+                <div class="chat-bubble bg-error text-error-content">
+                    <pre class="whitespace-pre-wrap text-sm">Erreur: ${error.message}</pre>
+                </div>
+                <div class="chat-footer opacity-60 text-xs mt-1">système</div>
+            </div>`;
+            
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Edit';
+        }
+    });
+</script>
