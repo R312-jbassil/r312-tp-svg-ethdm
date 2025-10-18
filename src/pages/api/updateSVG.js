@@ -1,62 +1,62 @@
 import pb from "../../utils/pb";
 import { Collections } from "../../utils/pocketbase-types";
 
-/**
- * Endpoint pour mettre à jour les données dans PocketBase
- * @param {Object} updatedData - Contient l'id et les champs modifiés (code_svg, chat_history)
- */
 export async function POST({ request }) {
-    try {
-        // Récupérer les données envoyées dans le body de la requête
-        const updatedData = await request.json();
+    const data = await request.json();
+    console.log("Received data to update:", data);
 
-        // Vérifier que l'id est présent
-        if (!updatedData.id) {
+    try {
+        const { id, ...updateData } = data;
+
+        if (!id) {
             return new Response(
-                JSON.stringify({ 
-                    success: false, 
-                    error: "ID manquant" 
-                }), 
+                JSON.stringify({
+                    success: false,
+                    error: "ID de l'enregistrement requis"
+                }),
                 {
+                    headers: { "Content-Type": "application/json" },
                     status: 400,
-                    headers: { "Content-Type": "application/json" }
                 }
             );
         }
 
-        // Mettre à jour l'enregistrement dans PocketBase
-        const response = await pb.collection(Collections.Svg).update(
-            updatedData.id, 
-            {
-                code_svg: updatedData.code_svg,
-                chat_history: updatedData.chat_history
-            }
-        );
+        const record = await pb
+            .collection(Collections.Svg)
+            .update(id, updateData);
 
-        // Retourner une réponse de succès
+        console.log("SVG updated with ID:", record.id);
+
         return new Response(
-            JSON.stringify({ 
+            JSON.stringify({
                 success: true,
-                data: response
-            }), 
+                id: record.id,
+                updated: record.updated
+            }),
             {
-                status: 200,
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
             }
         );
-
     } catch (error) {
-        console.error("Erreur lors de la mise à jour:", error);
-        
+        console.error("Error updating SVG:", error);
         return new Response(
-            JSON.stringify({ 
-                success: false, 
-                error: error.message || "Erreur lors de la mise à jour du SVG" 
-            }), 
+            JSON.stringify({
+                success: false,
+                error: error.message
+            }),
             {
+                headers: { "Content-Type": "application/json" },
                 status: 500,
-                headers: { "Content-Type": "application/json" }
             }
         );
     }
 }
+
+async function update(updatedData) {
+    const response = await fetch("/api/updateSVG", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+    });
+    return response;
+};

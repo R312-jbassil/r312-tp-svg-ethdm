@@ -9,7 +9,7 @@ export const POST = async ({ request }) => {
 
     const client = new OpenAI({
         baseURL: "https://openrouter.ai/api/v1",
-        apiKey: "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",
+        apiKey: "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",
     });
 
     let SystemMessage =
@@ -19,7 +19,7 @@ export const POST = async ({ request }) => {
     };
 
     const chatCompletion = await client.chat.completions.create({
-        model: "openai/gpt-oss-20b:free",
+        model: "qwen/qwen3-coder:free",
         messages: [SystemMessage, ...messages]
     });
 
@@ -33,5 +33,21 @@ export const POST = async ({ request }) => {
 
     return new Response(JSON.stringify({ svg: message }), {
         headers: { "Content-Type": "application/json" },
+    });
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    saveButton.addEventListener("click", async () => {
+        const name = prompt("Enter a name for the SVG:");
+        const svgOutput = document.getElementById("svg-output")?.textContent;
+        console.log("Saving SVG: ", JSON.stringify(svgOutput));
+
+        const params: Collection.Svg = {
+            nom: name,
+            code_svg: svgOutput || "<svg></svg>",
+            chat_history: JSON.stringify(promptList),
+            user: user.id
+        };
+        await saveSVG(params);
     });
 };

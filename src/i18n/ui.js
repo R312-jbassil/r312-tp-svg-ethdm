@@ -24,7 +24,6 @@ export const ui = {
         title: 'SVG Gallery',
         viewDetails: 'View Details',
     }
-
   },
   fr: {
     nav: {
@@ -42,7 +41,7 @@ export const ui = {
         title: 'Générateur SVG',
         contentPlaceholder: 'Le contenu SVG sera affiché ici',
         codePlaceholder: 'Le code SVG sera affiché ici',
-        promptLabel: 'Entrez votre prompt :',
+        promptLabel: 'Entrez votre invite :',
         generateButton: 'Générer le SVG',
         editButton: 'Éditer',
         saveLabel: 'Sauvegarder',
@@ -51,6 +50,5 @@ export const ui = {
         title: 'Galerie SVG',
         viewDetails: 'Voir les détails',
     }
-
   },
 } 
